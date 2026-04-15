@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "project-for-cloudflare-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-13",
+  "compatibility_flags": ["nodejs_compat"]
+}

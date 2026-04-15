@@ -1,0 +1,18 @@
+{
+  "name": "project-for-cloudflare-worker",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "cf-typegen": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.0",
+    "@cloudflare/workers-types": "^4.20250410.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1",
+    "wrangler": "^4.14.0"
+  }
+}

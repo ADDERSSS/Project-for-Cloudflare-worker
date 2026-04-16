@@ -3,5 +3,30 @@
   "name": "project-for-cloudflare-worker",
   "main": "src/index.ts",
   "compatibility_date": "2025-04-13",
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bookmarks-db",
+      "database_id": "local"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "local"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ASSETS",
+      "bucket_name": "bookmark-assets"
+    }
+  ],
+  "vars": {
+    "BASE_URL": "http://localhost:8787"
+  },
+  "triggers": {
+    "crons": ["0 3 * * *"]
+  }
 }

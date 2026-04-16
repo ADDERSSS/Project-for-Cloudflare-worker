@@ -15,15 +15,16 @@ function serializeBookmark(bookmark: db.BookmarkWithTags | null) {
   };
 }
 
-async function invalidateCollectionCachesForBookmark(env: Env, bookmarkId: string): Promise<void> {
+async function invalidateCollectionCachesForBookmark(bookmarkId: string, origin: string, env: Env): Promise<void> {
   const slugs = await db.getCollectionSlugsByBookmarkId(env.DB, bookmarkId);
   await Promise.all(
-    slugs.map((slug) => caches.default.delete(new URL(`/c/${slug}`, env.BASE_URL).toString()))
+    slugs.map((slug) => caches.default.delete(new URL(`/c/${slug}`, origin).toString()))
   );
 }
 
 export const handleBookmarks: Handler = async (req, env, ctx, params) => {
   const url = new URL(req.url);
+  const origin = url.origin;
 
   if (req.method === 'POST' && !params.id) {
     const body = await req.json<{ url: string; title: string; description?: string; tagIds?: string[] }>();
@@ -82,14 +83,14 @@ export const handleBookmarks: Handler = async (req, env, ctx, params) => {
       ctx.waitUntil(fetchAndStoreFavicon(env, params.id, body.url));
       ctx.waitUntil(runAISummary(env, params.id, true));
     }
-    ctx.waitUntil(invalidateCollectionCachesForBookmark(env, params.id));
+    ctx.waitUntil(invalidateCollectionCachesForBookmark(params.id, origin, env));
 
     const bookmark = await db.getBookmark(env.DB, params.id);
     return jsonResponse(serializeBookmark(bookmark));
   }
 
   if (req.method === 'DELETE' && params.id) {
-    const invalidation = invalidateCollectionCachesForBookmark(env, params.id);
+    const invalidation = invalidateCollectionCachesForBookmark(params.id, origin, env);
     await db.deleteBookmark(env.DB, params.id);
     await invalidation;
     await env.CACHE.delete('stats:overview');

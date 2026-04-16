@@ -4,6 +4,8 @@ import { generateShortCode } from '../../utils/id';
 import * as db from '../../db/queries';
 
 export const handleShortlinks: Handler = async (req, env, _ctx, params) => {
+  const origin = new URL(req.url).origin;
+
   // GET /api/shortlinks
   if (req.method === 'GET') {
     const links = await db.listShortLinks(env.DB);
@@ -29,7 +31,7 @@ export const handleShortlinks: Handler = async (req, env, _ctx, params) => {
     }
 
     await env.CACHE.delete('stats:overview');
-    return jsonResponse({ code, url: `${env.BASE_URL}/s/${code}` }, 201);
+    return jsonResponse({ code, url: `${origin}/s/${code}` }, 201);
   }
 
   // DELETE /api/shortlinks/:code

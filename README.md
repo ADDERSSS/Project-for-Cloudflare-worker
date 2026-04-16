@@ -93,7 +93,8 @@ test/
 - `CACHE`：KV
 - `ASSETS`：R2
 - `AI`：Workers AI
-- `BASE_URL`：短链与公开链接基础地址
+
+短链和公开合集缓存失效会基于当前请求域名动态计算，不再依赖固定的 `BASE_URL`。
 
 ## 本地开发
 

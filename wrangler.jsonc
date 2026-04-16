@@ -8,14 +8,14 @@
     {
       "binding": "DB",
       "database_name": "bookmarks-db",
-      "database_id": "local",
+      "database_id": "3eaf5f29-3f26-4fb3-a92a-b8f8a5078ff1",
       "migrations_dir": "src/db/migrations"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE",
-      "id": "local"
+      "id": "ae9534752f2d47dcb6d0551dfb0e39a4"
     }
   ],
   "r2_buckets": [
@@ -26,9 +26,6 @@
   ],
   "ai": {
     "binding": "AI"
-  },
-  "vars": {
-    "BASE_URL": "http://localhost:8787"
   },
   "triggers": {
     "crons": ["0 3 * * *"]

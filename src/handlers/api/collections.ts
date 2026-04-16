@@ -7,13 +7,11 @@ function isValidSlug(value: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 }
 
-async function invalidateCollectionCache(env: Env, slug: string): Promise<void> {
-  const url = new URL(`/c/${slug}`, env.BASE_URL).toString();
-  await caches.default.delete(url);
-}
-
 export const handleCollections: Handler = async (req, env, _ctx, params) => {
   const url = new URL(req.url);
+  const origin = url.origin;
+
+  const invalidateCache = (slug: string) => caches.default.delete(new URL(`/c/${slug}`, origin).toString());
 
   if (req.method === 'GET' && !params.id) {
     const collections = await db.listCollections(env.DB);
@@ -70,13 +68,11 @@ export const handleCollections: Handler = async (req, env, _ctx, params) => {
         isPublic: body.isPublic,
       });
 
-      if (existing.is_public === 1) {
-        await invalidateCollectionCache(env, existing.slug);
-      }
+      if (existing.is_public === 1) await invalidateCache(existing.slug);
 
       const updated = await db.getCollection(env.DB, params.id);
       if (updated?.is_public) {
-        await invalidateCollectionCache(env, updated.slug);
+        await invalidateCache(updated.slug);
       }
 
       return jsonResponse(updated);
@@ -92,7 +88,7 @@ export const handleCollections: Handler = async (req, env, _ctx, params) => {
 
     await db.deleteCollection(env.DB, params.id);
     if (existing.is_public === 1) {
-      await invalidateCollectionCache(env, existing.slug);
+      await invalidateCache(existing.slug);
     }
 
     return jsonResponse({ ok: true });
@@ -109,7 +105,7 @@ export const handleCollections: Handler = async (req, env, _ctx, params) => {
 
     await db.addBookmarksToCollection(env.DB, params.id, bookmarkIds);
     if (collection.is_public === 1) {
-      await invalidateCollectionCache(env, collection.slug);
+      await invalidateCache(collection.slug);
     }
 
     const updated = await db.getCollection(env.DB, params.id);
@@ -122,7 +118,7 @@ export const handleCollections: Handler = async (req, env, _ctx, params) => {
 
     await db.removeBookmarkFromCollection(env.DB, params.id, params.bookmarkId);
     if (collection.is_public === 1) {
-      await invalidateCollectionCache(env, collection.slug);
+      await invalidateCache(collection.slug);
     }
 
     return jsonResponse({ ok: true });

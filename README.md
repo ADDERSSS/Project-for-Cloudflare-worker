@@ -1,173 +1,233 @@
 # LinkMark
 
-A personal bookmark manager built entirely on **Cloudflare Workers**, showcasing D1 (SQL database), KV (key-value cache), R2 (object storage), and Cron Triggers — all in a single Worker with a polished frontend.
+LinkMark 是一个运行在 **Cloudflare Workers** 上的个人书签管理项目。它把 D1、KV、R2、Cron Triggers 和 Workers AI 组合在一个 Worker 里，提供从收藏、整理、分析到公开分享的一整套书签工作流。
 
-## Features
+## 当前能力
 
-- **Bookmark Management** — Save, edit, search, tag, and archive bookmarks
-- **Short Links** — Generate short redirect URLs with click tracking and KV-cached fast redirects
-- **Tag System** — Color-coded tags with a preset palette picker, multi-tag filtering
-- **Statistics Dashboard** — Real-time stats cards (bookmarks, clicks, links, tags) with cached aggregation
-- **Auto Favicon** — Asynchronously fetches and stores favicons in R2 on bookmark creation
-- **Cron Jobs** — Daily cleanup of expired short links and click log aggregation
-- **Dark Mode** — System-aware with localStorage persistence and smooth transitions
-- **Responsive Design** — Mobile sidebar, adaptive grid layout, glassmorphism navbar
+- 书签管理：新增、编辑、删除、搜索、归档、标签筛选
+- 异步富化：创建书签后自动抓取 favicon、生成主色竖条
+- AI 摘要：后台异步生成中文摘要与推荐标签，失败后支持手动重试
+- 命令面板：`⌘K / Ctrl+K` 快速跳转页面、搜索书签、切换暗色模式
+- 数据分析：统计卡片、年度点击热力图、国家来源柱状图、书签 7 天 sparkline
+- 短链系统：KV 热路径跳转、点击日志、每日聚合
+- 公开合集：将一组书签整理成公开只读页面 `/c/:slug`
+- 体验细节：暗色模式、Reduced Motion、View Transitions、玻璃拟态 UI
 
-## Tech Stack
+## 技术栈
 
-| Layer | Technology |
-|-------|-----------|
-| Runtime | Cloudflare Workers (V8 isolate) |
-| Database | Cloudflare D1 (SQLite) |
+| 层 | 技术 |
+|---|---|
+| Runtime | Cloudflare Workers |
+| Database | Cloudflare D1 |
 | Cache | Cloudflare KV |
 | Storage | Cloudflare R2 |
+| AI | Workers AI |
 | Scheduling | Cron Triggers |
-| Frontend | Inline HTML + Tailwind CSS CDN + Alpine.js CDN |
-| Language | TypeScript (strict mode) |
-| Testing | Vitest + @cloudflare/vitest-pool-workers |
+| Frontend | SSR HTML + Tailwind CDN + Alpine.js |
+| Language | TypeScript |
+| Testing | Vitest + `@cloudflare/vitest-pool-workers` |
 
-## Architecture
+## 项目结构
 
-```
+```text
 src/
-  index.ts                    # Entry point: fetch + scheduled handlers
-  router.ts                   # Zero-dependency pattern-matching router (~45 lines)
-  middleware/auth.ts           # Bearer token + cookie auth
+  index.ts                        # Worker 入口，挂载页面/API/cron
+  router.ts                       # 轻量级路由
+  middleware/auth.ts              # Bearer token + cookie 鉴权，公开路由白名单
   handlers/
-    api/                      # REST API (bookmarks, tags, shortlinks, stats)
-    pages/                    # Server-rendered HTML pages (5 pages)
-    redirect.ts               # Short link redirect with KV fast path
+    api/
+      bookmarks.ts                # 书签 CRUD、AI 重分析、异步富化
+      collections.ts              # 合集管理 API
+      shortlinks.ts               # 短链管理 API
+      stats.ts                    # 概览统计与趋势 API
+      tags.ts                     # 标签管理 API
+    pages/
+      dashboard.ts                # 主控制台，含分析区和合集管理
+      bookmark-form.ts            # 新建/编辑书签页面
+      tags-page.ts                # 标签管理页面
+      shortlinks-page.ts          # 短链页面
+      collection.ts               # 公开合集页
+      login.ts                    # 登录页
+    redirect.ts                   # /s/:code 跳转与点击记录
   templates/
-    layout.ts                 # Base HTML with nav, toast, dark mode
-    components.ts             # Reusable UI components (cards, skeletons, modals)
-    animations.ts             # Custom CSS keyframes and utilities
-    error-pages.ts            # Styled 404/500 error pages
+    layout.ts                     # 全局布局、导航、命令面板、Toast
+    components.ts                 # 书签卡片、图表 SVG、模态框等组件
+    animations.ts                 # 自定义动画、Reduced Motion
+    error-pages.ts                # 404 / 500 页面
   db/
-    queries.ts                # Type-safe D1 query layer
-    migrations/0001_initial.sql
-  services/                   # Business logic (not yet extracted)
-  cron/                       # Scheduled task handlers
-  utils/                      # HTML escaping, ID generation, validators
+    queries.ts                    # D1 查询层
+    migrations/
+      0001_initial.sql            # 基础表结构
+      0002_ai.sql                 # AI 摘要字段
+      0003_collections.sql        # 合集与 accent color
+  cron/
+    cleanup.ts                    # 过期短链清理
+    aggregate-stats.ts            # 每日点击聚合
+  utils/
+    ai.ts                         # 页面抽文、AI 调用、AI KV 缓存
+    color.ts                      # 域名哈希取色
+    html.ts / response.ts         # 基础工具
+    id.ts / validators.ts         # ID 和校验工具
+test/
+  index.spec.ts                   # Worker 集成测试
 ```
 
-## Cloudflare Features Used
+## 数据与绑定
 
-### D1 (SQL Database)
-6 tables: `bookmarks`, `tags`, `bookmark_tags`, `short_links`, `click_logs`, `daily_stats`. All queries are type-safe with TypeScript interfaces. Supports batch operations for tag assignments.
+### D1 表
 
-### KV (Key-Value Store)
-- **Short link redirect cache**: `sl:{code}` → `{url, bookmarkId}` for sub-millisecond redirects
-- **Stats cache**: `stats:overview` with 5-minute TTL, auto-invalidated on writes
+- `bookmarks`
+- `tags`
+- `bookmark_tags`
+- `short_links`
+- `click_logs`
+- `daily_stats`
+- `collections`
+- `collection_bookmarks`
 
-### R2 (Object Storage)
-Stores favicons fetched asynchronously via `ctx.waitUntil()`. Served with `Cache-Control` headers.
+### Cloudflare 绑定
 
-### Cron Triggers
-Runs daily at 03:00 UTC:
-1. Cleans up expired short links (D1 + KV sync)
-2. Aggregates click logs into `daily_stats`
-3. Purges click log details older than 90 days
+`wrangler.jsonc` 中当前使用这些绑定：
 
-## Getting Started
+- `DB`：D1
+- `CACHE`：KV
+- `ASSETS`：R2
+- `AI`：Workers AI
+- `BASE_URL`：短链与公开链接基础地址
 
-### Prerequisites
+## 本地开发
 
-- [Node.js](https://nodejs.org/) 18+
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (`npm i -g wrangler`)
-
-### Local Development
+### 1. 安装依赖
 
 ```bash
-# Install dependencies
 npm install
+```
 
-# Initialize the local D1 database
-npx wrangler d1 execute bookmarks-db --local --file=src/db/migrations/0001_initial.sql
+### 2. 生成绑定类型
 
-# Start the dev server
+```bash
+npm run cf-typegen
+```
+
+### 3. 初始化本地数据库
+
+```bash
+npx wrangler d1 migrations apply DB --local
+```
+
+### 4. 启动本地开发
+
+```bash
 npm run dev
 ```
 
-The app runs at `http://localhost:8787`. Login with the token from `.dev.vars` (default: `dev-token-change-me`).
+默认地址为 [http://localhost:8787](http://localhost:8787)。
 
-### Configuration
+本地登录需要在 `.dev.vars` 里提供：
 
-**`.dev.vars`** (local secrets, not committed):
-```
+```dotenv
 AUTH_TOKEN=your-secret-token
 ```
 
-**`wrangler.jsonc`** contains all bindings:
-- `DB` — D1 database
-- `CACHE` — KV namespace
-- `ASSETS` — R2 bucket
-- `BASE_URL` — Base URL for short links
-- Cron: `0 3 * * *`
-
-### Deploy to Cloudflare
+## 验证命令
 
 ```bash
-# Create resources
-npx wrangler d1 create bookmarks-db
-npx wrangler kv namespace create CACHE
-npx wrangler r2 bucket create bookmark-assets
+npx tsc --noEmit
+npm test
+```
 
-# Update wrangler.jsonc with the returned IDs
+## 线上部署到 Cloudflare
 
-# Set the auth secret
-npx wrangler secret put AUTH_TOKEN
+### 前提
 
-# Apply database migrations
-npx wrangler d1 migrations apply bookmarks-db --remote
+- 已登录 Wrangler：`npx wrangler whoami`
+- Cloudflare 账号已启用 Workers AI
+- `wrangler.jsonc` 中已填入真实的 D1 / KV / R2 绑定信息
+- 已设置远端密钥：`npx wrangler secret put AUTH_TOKEN`
 
-# Deploy
+### 首次或历史库升级时的推荐顺序
+
+```bash
+npm run cf-typegen
+```
+
+远端 D1 目前要特别注意迁移跟踪表问题。部署前先执行：
+
+```bash
+npx wrangler d1 execute DB --remote --command "INSERT INTO d1_migrations (name) VALUES ('0001_initial.sql')"
+npx wrangler d1 migrations apply DB --remote
+```
+
+如果第一条命令提示这条记录已经存在，可以忽略这一步，再继续执行 migrations apply。
+
+然后再部署：
+
+```bash
 npm run deploy
 ```
 
-### Commands
+部署成功后，Worker 会在 Cloudflare 返回的 `workers.dev` 域名上可访问。
 
-| Command | Description |
-|---------|------------|
-| `npm run dev` | Start local dev server |
-| `npm run deploy` | Deploy to Cloudflare |
-| `npm test` | Run test suite (15 tests) |
-| `npx tsc --noEmit` | Type check |
-| `npm run cf-typegen` | Regenerate types from wrangler bindings |
+## 公开访问说明
 
-## API Reference
+- 登录页：`/login`
+- 短链跳转：`/s/:code`
+- 公开合集：`/c/:slug`
 
-All API endpoints require authentication via `Authorization: Bearer <token>` header or `auth_token` cookie.
+其中 `/c/:slug` 为无鉴权只读页面，并使用 Cache API 做整页缓存。
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/` | Dashboard page |
-| `GET` | `/login` | Login page (public) |
-| `POST` | `/api/login` | Authenticate (public) |
-| `GET` | `/s/:code` | Short link redirect (public) |
-| `GET/POST` | `/api/bookmarks` | List / Create bookmarks |
-| `GET/PUT/DELETE` | `/api/bookmarks/:id` | Read / Update / Delete bookmark |
-| `POST` | `/api/bookmarks/:id/archive` | Toggle archive |
-| `GET/POST` | `/api/tags` | List / Create tags |
-| `PUT/DELETE` | `/api/tags/:id` | Update / Delete tag |
-| `GET` | `/api/shortlinks` | List short links |
-| `POST` | `/api/bookmarks/:id/shortlink` | Generate short link |
-| `DELETE` | `/api/shortlinks/:code` | Delete short link |
-| `GET` | `/api/stats/overview` | Stats overview |
-| `GET` | `/api/stats/clicks` | Click trend data |
-| `GET` | `/api/assets/:key` | Serve R2 asset |
+## API 概览
 
-## Frontend Design
+### 鉴权公开
 
-The frontend is server-rendered HTML with client-side interactivity powered by Alpine.js:
+- `GET /login`
+- `POST /api/login`
+- `GET /s/:code`
+- `GET /c/:slug`
 
-- **Glassmorphism navbar** with backdrop blur and saturation
-- **Animated stat cards** with gradient icons and colored shadows
-- **Staggered entrance animations** using CSS keyframes with spring-like easing
-- **Skeleton loading states** with shimmer effect
-- **Toast notifications** with icon indicators and slide-in animation
-- **Color palette picker** for tags (16 preset colors)
-- **Mesh gradient background** for subtle depth
-- **Inter font** from Google Fonts for clean typography
+### 需要鉴权
+
+- `GET/POST /api/bookmarks`
+- `GET/PUT/DELETE /api/bookmarks/:id`
+- `POST /api/bookmarks/:id/archive`
+- `POST /api/bookmarks/:id/reanalyze`
+- `GET/POST /api/tags`
+- `PUT/DELETE /api/tags/:id`
+- `GET /api/shortlinks`
+- `POST /api/bookmarks/:bookmarkId/shortlink`
+- `DELETE /api/shortlinks/:code`
+- `GET /api/stats/overview`
+- `GET /api/stats/clicks`
+- `GET/POST /api/collections`
+- `PUT/DELETE /api/collections/:id`
+- `POST /api/collections/:id/bookmarks`
+- `DELETE /api/collections/:id/bookmarks/:bookmarkId`
+
+## 项目特点
+
+### AI 摘要工作流
+
+1. 书签写入 D1
+2. `ctx.waitUntil()` 异步抓取页面文本
+3. Workers AI 生成摘要与推荐标签
+4. 结果回写 D1，并用 KV 对相同 URL 做 30 天缓存
+
+### 公开合集缓存
+
+- `/c/:slug` 直接使用 `caches.default`
+- 合集变更或合集内书签变更时主动清理缓存
+
+### 点击分析
+
+- 短链访问先读 KV
+- 命中时直接跳转并异步记日志
+- Cron 每天把 `click_logs` 聚合进 `daily_stats`
+
+## 文档说明
+
+- [AGENTS.md](./AGENTS.md)：Codex 协作说明
+- [CLAUDE.md](./CLAUDE.md)：Claude Code 协作说明
+- [PLAN.md](./PLAN.md)：本轮升级方案记录
 
 ## License
 

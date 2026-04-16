@@ -1,49 +1,105 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working in this repository.
 
-## Project Type
+## Project Summary
 
-This is a Cloudflare Worker project. Workers run on Cloudflare's edge network using the V8 isolate runtime — not Node.js. Key constraints:
+LinkMark is a personal bookmark manager built on Cloudflare Workers. The current implementation includes:
 
-- No Node.js built-ins (`fs`, `path`, `http`, etc.) unless polyfilled via `nodejs_compat` flag (已启用)
-- Use Web APIs: `fetch`, `Request`, `Response`, `URL`, `crypto`, `TextEncoder`, etc.
-- Entry point exports a `fetch` handler (and optionally `scheduled`, `queue`, etc.)
+- bookmark CRUD, search, archive, tags
+- short links with KV hot-path redirects and click logging
+- Workers AI summaries and suggested tags
+- yearly click heatmap, country charts, and per-bookmark sparklines
+- public read-only collections at `/c/:slug`
+- R2 favicon storage and accent-color extraction
+
+## Runtime Constraints
+
+- Cloudflare Workers runtime, not plain Node.js
+- `nodejs_compat` is enabled, but prefer Web APIs first
+- use `fetch`, `Request`, `Response`, `URL`, `crypto`, `TextEncoder`, `HTMLRewriter`
+- environment bindings come from `env`, never `process.env`
 
 ## Common Commands
 
 ```bash
-npm install              # Install dependencies
-npm run dev              # Local dev server (run manually in terminal, NOT via Claude)
-npm run deploy           # Deploy to Cloudflare
-npm test                 # Run tests (vitest, single pass)
-npx tsc --noEmit         # Type check
-npm run cf-typegen       # Generate types from wrangler.jsonc bindings
+npm install
+npm run cf-typegen
+npx wrangler d1 migrations apply DB --local
+npm run dev
+npm test
+npx tsc --noEmit
+npm run deploy
 ```
+
+## Important Deployment Note
+
+Before running `npm run deploy`, handle the remote D1 migration tracking table first:
+
+```bash
+npx wrangler d1 execute DB --remote --command "INSERT INTO d1_migrations (name) VALUES ('0001_initial.sql')"
+npx wrangler d1 migrations apply DB --remote
+```
+
+If the insert fails because the row already exists, continue with the migrations apply step.
+
+Also confirm that Workers AI is enabled on the target Cloudflare account before the first production AI request.
 
 ## Project Structure
 
+```text
+src/index.ts                          # fetch/scheduled entrypoint
+src/router.ts                         # minimal router
+src/middleware/auth.ts                # auth + public route whitelist
+src/handlers/api/bookmarks.ts         # bookmark CRUD + AI retry + async enrichment
+src/handlers/api/collections.ts       # collection CRUD
+src/handlers/api/shortlinks.ts        # short link CRUD
+src/handlers/api/stats.ts             # stats endpoints
+src/handlers/api/tags.ts              # tag CRUD
+src/handlers/pages/dashboard.ts       # main dashboard
+src/handlers/pages/bookmark-form.ts   # add/edit bookmark page
+src/handlers/pages/collection.ts      # public collection page
+src/handlers/pages/login.ts           # login page
+src/handlers/pages/shortlinks-page.ts # short links page
+src/handlers/pages/tags-page.ts       # tags page
+src/handlers/redirect.ts              # /s/:code redirect
+src/templates/layout.ts               # layout + command palette + toast
+src/templates/components.ts           # cards, SVG charts, modals
+src/templates/animations.ts           # custom CSS + reduced motion
+src/db/queries.ts                     # D1 query layer
+src/db/migrations/0001_initial.sql
+src/db/migrations/0002_ai.sql
+src/db/migrations/0003_collections.sql
+src/utils/ai.ts                       # page extraction + Workers AI helpers
+src/utils/color.ts                    # accent color fallback
+src/cron/aggregate-stats.ts           # daily stats aggregation
+src/cron/cleanup.ts                   # expired short link cleanup
+test/index.spec.ts                    # integration tests
 ```
-src/index.ts             # Worker entry point
-test/index.spec.ts       # Tests using @cloudflare/vitest-pool-workers
-wrangler.jsonc           # Worker config (bindings, compatibility_date, compatibility_flags)
-vitest.config.ts         # Vitest config with Cloudflare Workers pool
-tsconfig.json
-```
 
-## Key Patterns
+## Implementation Patterns
 
-**Entry point shape:**
-```ts
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    return new Response("Hello World");
-  },
-};
-```
+### Async enrichment
 
-**Environment bindings** (KV, D1, R2, secrets, vars) are typed via an `Env` interface and injected as the second argument to handlers — never use `process.env`.
+- bookmark creation returns quickly
+- favicon fetch, accent color extraction, and AI summarization run inside `ctx.waitUntil()`
+- repeated AI work is reduced with KV caching by URL hash
 
-**`wrangler.jsonc`** controls bindings, routes, `compatibility_date`, and `compatibility_flags`. The `compatibility_date` should be kept current.
+### Public collections
 
-**Durable Objects** require `ctx.waitUntil()` for async work that outlives the response.
+- `/c/:slug` is public and bypasses auth
+- collection pages are cached with `caches.default`
+- collection cache must be invalidated when collections or included bookmarks change
+
+### Analytics
+
+- redirect reads from KV first
+- click logs are append-only in `click_logs`
+- cron aggregates into `daily_stats`
+
+### Frontend
+
+- server-rendered HTML, Alpine.js for interaction
+- command palette lives in `layout.ts`
+- bookmark card UI and SVG charts live in `components.ts`
+- keep reduced-motion behavior intact when adding new animations

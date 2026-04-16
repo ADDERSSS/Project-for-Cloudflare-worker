@@ -17,6 +17,8 @@ export const handleBookmarks: Handler = async (req, env, ctx, params) => {
 
     // Async favicon fetch
     ctx.waitUntil(fetchAndStoreFavicon(env, id, body.url));
+    // Invalidate stats cache
+    ctx.waitUntil(env.CACHE.delete('stats:overview'));
 
     const bookmark = await db.getBookmark(env.DB, id);
     return jsonResponse(bookmark, 201);
@@ -25,6 +27,7 @@ export const handleBookmarks: Handler = async (req, env, ctx, params) => {
   // POST /api/bookmarks/:id/archive
   if (req.method === 'POST' && params.id && url.pathname.endsWith('/archive')) {
     await db.toggleArchive(env.DB, params.id);
+    await env.CACHE.delete('stats:overview');
     return jsonResponse({ ok: true });
   }
 
@@ -47,6 +50,7 @@ export const handleBookmarks: Handler = async (req, env, ctx, params) => {
   // DELETE /api/bookmarks/:id
   if (req.method === 'DELETE' && params.id) {
     await db.deleteBookmark(env.DB, params.id);
+    await env.CACHE.delete('stats:overview');
     return jsonResponse({ ok: true });
   }
 
@@ -62,15 +66,38 @@ export const handleBookmarks: Handler = async (req, env, ctx, params) => {
 async function fetchAndStoreFavicon(env: Env, bookmarkId: string, bookmarkUrl: string): Promise<void> {
   try {
     const origin = new URL(bookmarkUrl).origin;
-    // Try Google favicon service as a reliable source
-    const res = await fetch(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(origin)}&sz=64`);
-    if (res.ok) {
-      const blob = await res.arrayBuffer();
+    let blob: ArrayBuffer | null = null;
+    let contentType = 'image/png';
+
+    // Strategy 1: Try direct /favicon.ico
+    try {
+      const directRes = await fetch(`${origin}/favicon.ico`, { redirect: 'follow' });
+      if (directRes.ok) {
+        const ct = directRes.headers.get('Content-Type') || '';
+        if (ct.includes('image')) {
+          blob = await directRes.arrayBuffer();
+          contentType = ct.split(';')[0].trim();
+        }
+      }
+    } catch {
+      // Direct fetch failed, try next strategy
+    }
+
+    // Strategy 2: Google favicon service as fallback
+    if (!blob) {
+      const googleRes = await fetch(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(origin)}&sz=64`);
+      if (googleRes.ok) {
+        blob = await googleRes.arrayBuffer();
+        contentType = 'image/png';
+      }
+    }
+
+    if (blob && blob.byteLength > 0) {
       const key = `favicons/${bookmarkId}.png`;
-      await env.ASSETS.put(key, blob, { httpMetadata: { contentType: 'image/png' } });
+      await env.ASSETS.put(key, blob, { httpMetadata: { contentType } });
       await db.updateBookmarkFavicon(env.DB, bookmarkId, key);
     }
-  } catch {
-    // Favicon fetch is best-effort
+  } catch (err) {
+    console.warn(`Favicon fetch failed for ${bookmarkUrl}:`, err);
   }
 }

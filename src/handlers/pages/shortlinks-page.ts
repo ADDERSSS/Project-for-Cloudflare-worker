@@ -10,7 +10,7 @@ export const shortlinksPage: Handler = async () => {
       </div>
 
       <!-- Links Table -->
-      <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden animate-slide-up stagger-1">
+      <div class="bg-white/80 dark:bg-white/[0.03] glass rounded-2xl shadow-xl shadow-indigo-500/5 border border-gray-200/50 dark:border-white/5 overflow-hidden animate-slide-up stagger-1">
         <!-- Loading -->
         <template x-if="loading">
           <div class="p-8 space-y-4">
@@ -25,7 +25,7 @@ export const shortlinksPage: Handler = async () => {
           <div class="overflow-x-auto">
             <table class="w-full">
               <thead>
-                <tr class="border-b border-gray-100 dark:border-gray-800">
+                <tr class="border-b border-gray-100 dark:border-white/5">
                   <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">Short Link</th>
                   <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">Target</th>
                   <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-5 py-3">Clicks</th>
@@ -35,7 +35,7 @@ export const shortlinksPage: Handler = async () => {
               </thead>
               <tbody>
                 <template x-for="(link, index) in links" :key="link.code">
-                  <tr class="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors animate-slide-up"
+                  <tr class="border-b border-gray-50 dark:border-white/[0.03] hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors animate-slide-up"
                       :class="'stagger-' + Math.min((index % 6) + 1, 6)">
                     <td class="px-5 py-4">
                       <div class="flex items-center gap-2">
@@ -76,11 +76,11 @@ export const shortlinksPage: Handler = async () => {
         <!-- Empty state -->
         <template x-if="!loading && links.length === 0">
           <div class="text-center py-16 animate-fade-in">
-            <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 flex items-center justify-center mx-auto mb-4 animate-float">
+              <svg class="w-8 h-8 text-amber-300 dark:text-amber-500/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
             </div>
-            <p class="text-gray-500 dark:text-gray-400">No short links yet.</p>
-            <p class="text-sm text-gray-400 mt-1">Create short links from the bookmark edit page.</p>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">No short links yet</p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1.5">Generate short links from bookmark cards on the dashboard</p>
           </div>
         </template>
       </div>

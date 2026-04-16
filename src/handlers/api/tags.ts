@@ -18,6 +18,7 @@ export const handleTags: Handler = async (req, env, _ctx, params) => {
     if (body.color && !isValidHexColor(body.color)) return errorJsonResponse('Invalid color format');
     const id = generateId();
     await db.createTag(env.DB, { id, name: body.name.trim(), color: body.color });
+    await env.CACHE.delete('stats:overview');
     return jsonResponse({ id, name: body.name.trim(), color: body.color || '#6366f1' }, 201);
   }
 
@@ -33,6 +34,7 @@ export const handleTags: Handler = async (req, env, _ctx, params) => {
   // DELETE /api/tags/:id
   if (req.method === 'DELETE' && params.id) {
     await db.deleteTag(env.DB, params.id);
+    await env.CACHE.delete('stats:overview');
     return jsonResponse({ ok: true });
   }
 

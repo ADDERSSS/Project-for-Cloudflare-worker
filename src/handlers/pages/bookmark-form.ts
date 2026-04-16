@@ -11,14 +11,14 @@ export const bookmarkFormPage: Handler = async (req, _env, _ctx, params) => {
       <div class="animate-slide-up">
         <!-- Header -->
         <div class="flex items-center gap-3 mb-6">
-          <a href="/" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <a href="/" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
             <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </a>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="isEdit ? 'Edit Bookmark' : 'Add Bookmark'"></h1>
         </div>
 
         <!-- Form Card -->
-        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+        <div class="bg-white/80 dark:bg-white/[0.03] glass rounded-2xl shadow-xl shadow-indigo-500/5 border border-gray-200/50 dark:border-white/5 p-6">
           <form @submit.prevent="save()">
             <!-- URL -->
             <div class="mb-5">
@@ -55,8 +55,8 @@ export const bookmarkFormPage: Handler = async (req, _env, _ctx, params) => {
               <div class="flex flex-wrap gap-2 mb-2">
                 <template x-for="tag in allTags" :key="tag.id">
                   <button type="button" @click="toggleTag(tag.id)"
-                          class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200"
-                          :class="form.tagIds.includes(tag.id) ? 'border-transparent shadow-sm' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300'"
+                          class="px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide border transition-all duration-200"
+                          :class="form.tagIds.includes(tag.id) ? 'border-transparent shadow-sm' : 'border-gray-200/80 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-indigo-300 dark:hover:border-indigo-500/30'"
                           :style="form.tagIds.includes(tag.id) ? 'background-color:' + tag.color + '20; color:' + tag.color + '; border-color:' + tag.color : ''"
                           x-text="tag.name"></button>
                 </template>
@@ -65,9 +65,9 @@ export const bookmarkFormPage: Handler = async (req, _env, _ctx, params) => {
               <div class="flex gap-2">
                 <input type="text" x-model="newTagName" placeholder="New tag..."
                        @keydown.enter.prevent="createTag()"
-                       class="flex-1 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 transition-all">
+                       class="flex-1 px-3 py-1.5 rounded-xl border border-dashed border-gray-300 dark:border-white/10 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500 transition-all">
                 <button type="button" @click="createTag()" x-show="newTagName.trim()"
-                        class="px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors">
+                        class="px-3 py-1.5 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-200 dark:hover:bg-indigo-500/20 transition-colors">
                   Add
                 </button>
               </div>
@@ -80,7 +80,7 @@ export const bookmarkFormPage: Handler = async (req, _env, _ctx, params) => {
                 <span x-show="!saving" x-text="isEdit ? 'Update' : 'Save'"></span>
                 <span x-show="saving" x-cloak>Saving...</span>
               </button>
-              <a href="/" class="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+              <a href="/" class="px-6 py-2.5 rounded-xl border border-gray-200/80 dark:border-white/10 text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-all">
                 Cancel
               </a>
             </div>

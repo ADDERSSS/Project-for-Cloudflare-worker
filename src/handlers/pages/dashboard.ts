@@ -10,38 +10,38 @@ export const dashboardPage: Handler = async () => {
       <!-- Stats Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         ${statsCard('Bookmarks', 'stats.totalBookmarks',
-          '<svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>',
-          'bg-indigo-100 dark:bg-indigo-900/30', 1)}
+          '<svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>',
+          '#6366f1', 'from-indigo-500', 'to-blue-500', 1)}
         ${statsCard('Clicks Today', 'stats.clicksToday',
-          '<svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>',
-          'bg-emerald-100 dark:bg-emerald-900/30', 2)}
+          '<svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>',
+          '#10b981', 'from-emerald-500', 'to-teal-500', 2)}
         ${statsCard('Short Links', 'stats.totalShortLinks',
-          '<svg class="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>',
-          'bg-amber-100 dark:bg-amber-900/30', 3)}
+          '<svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>',
+          '#f59e0b', 'from-amber-500', 'to-orange-500', 3)}
         ${statsCard('Tags', 'stats.totalTags',
-          '<svg class="w-6 h-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>',
-          'bg-pink-100 dark:bg-pink-900/30', 4)}
+          '<svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>',
+          '#ec4899', 'from-pink-500', 'to-rose-500', 4)}
       </div>
 
       <!-- Search + Filter Bar -->
       <div class="flex flex-col sm:flex-row gap-3 mb-6 animate-slide-up stagger-5">
         <div class="relative flex-1">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input type="text" x-model="searchQuery" @input.debounce.300ms="fetchBookmarks()"
                  placeholder="Search bookmarks..."
-                 class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                 class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200/80 dark:border-white/5 bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-300 dark:focus:border-indigo-500/30 transition-all text-sm">
         </div>
-        <div class="flex gap-2 flex-wrap">
+        <div class="flex gap-1.5 flex-wrap">
           <button @click="activeTag = ''; fetchBookmarks()"
-                  class="px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                  :class="!activeTag ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-indigo-300'">
+                  class="px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all duration-200"
+                  :class="!activeTag ? 'bg-indigo-500 text-white shadow-sm shadow-indigo-500/20' : 'bg-white dark:bg-white/[0.03] text-gray-500 dark:text-gray-400 border border-gray-200/80 dark:border-white/5 hover:border-indigo-300 dark:hover:border-indigo-500/30'">
             All
           </button>
           <template x-for="tag in tags" :key="tag.id">
             <button @click="filterByTag(tag.name)"
-                    class="px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border"
-                    :class="activeTag === tag.name ? 'border-transparent' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300'"
-                    :style="activeTag === tag.name ? 'background-color:' + tag.color + '20; color:' + tag.color + '; border-color:' + tag.color + '40' : ''"
+                    class="px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all duration-200 border"
+                    :class="activeTag === tag.name ? 'border-transparent shadow-sm' : 'border-gray-200/80 dark:border-white/5 text-gray-500 dark:text-gray-400 hover:border-indigo-300'"
+                    :style="activeTag === tag.name ? 'background-color:' + tag.color + '; color: white; box-shadow: 0 4px 12px -2px ' + tag.color + '40' : ''"
                     x-text="tag.name"></button>
           </template>
         </div>
@@ -132,6 +132,27 @@ export const dashboardPage: Handler = async () => {
             this.activeTag = this.activeTag === name ? '' : name;
             this.page = 1;
             this.fetchBookmarks();
+          },
+
+          async createShortLink(bookmarkId) {
+            try {
+              const res = await fetch('/api/bookmarks/' + bookmarkId + '/shortlink', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+              });
+              if (res.ok) {
+                const data = await res.json();
+                const fullUrl = window.location.origin + '/s/' + data.code;
+                await navigator.clipboard.writeText(fullUrl);
+                showToast('Short link copied: /s/' + data.code, 'success');
+                this.fetchStats();
+              } else {
+                showToast('Failed to create short link', 'error');
+              }
+            } catch {
+              showToast('Failed to create short link', 'error');
+            }
           },
 
           async deleteBookmark(id) {

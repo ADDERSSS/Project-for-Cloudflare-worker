@@ -28,6 +28,7 @@ export const handleShortlinks: Handler = async (req, env, _ctx, params) => {
       }
     }
 
+    await env.CACHE.delete('stats:overview');
     return jsonResponse({ code, url: `${env.BASE_URL}/s/${code}` }, 201);
   }
 
@@ -35,6 +36,7 @@ export const handleShortlinks: Handler = async (req, env, _ctx, params) => {
   if (req.method === 'DELETE' && params.code) {
     await db.deleteShortLink(env.DB, params.code);
     await env.CACHE.delete(`sl:${params.code}`);
+    await env.CACHE.delete('stats:overview');
     return jsonResponse({ ok: true });
   }
 

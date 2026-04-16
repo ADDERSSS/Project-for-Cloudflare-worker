@@ -17,16 +17,17 @@ export const loginPage: Handler = async () => {
     [x-cloak] { display: none !important; }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-950 min-h-screen flex items-center justify-center transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-[#0a0a0f] min-h-screen flex items-center justify-center transition-colors duration-500 mesh-bg">
   <div class="w-full max-w-sm mx-auto px-4" x-data="loginForm()">
-    <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-8 animate-slide-up">
+    <div class="bg-white/80 dark:bg-white/[0.03] glass rounded-3xl shadow-2xl shadow-indigo-500/5 border border-gray-200/50 dark:border-white/5 p-8 animate-scale-bounce">
       <!-- Logo -->
       <div class="flex flex-col items-center mb-8">
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/25">
+        <div class="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center mb-5 shadow-xl shadow-indigo-500/30 animate-float">
           <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 animate-gradient opacity-0 group-hover:opacity-100"></div>
         </div>
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">LinkMark</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Enter your access token to continue</p>
+        <h1 class="text-2xl font-extrabold gradient-text">LinkMark</h1>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1.5">Enter your access token to continue</p>
       </div>
 
       <!-- Form -->

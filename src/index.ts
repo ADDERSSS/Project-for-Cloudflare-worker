@@ -60,17 +60,7 @@ router.delete('/api/shortlinks/:code', handleShortlinks);
 router.get('/api/stats/overview', handleStats);
 router.get('/api/stats/clicks', handleStats);
 
-// --- API: Assets (R2) ---
-router.get('/api/assets/:key', async (req, env, ctx, params) => {
-  const object = await env.ASSETS.get(params.key);
-  if (!object) return new Response('Not Found', { status: 404 });
-  return new Response(object.body, {
-    headers: {
-      'Content-Type': object.httpMetadata?.contentType || 'image/png',
-      'Cache-Control': 'public, max-age=86400',
-    },
-  });
-});
+// --- API: Assets (R2) — handled directly in fetch, not via router, to support nested keys ---
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -79,6 +69,22 @@ export default {
     // Public routes — no auth
     if (url.pathname.startsWith('/s/') || url.pathname === '/login' || url.pathname === '/api/login') {
       return router.handle(request, env, ctx);
+    }
+
+    // Serve R2 assets — handle before auth to support nested keys like favicons/xxx.png
+    if (url.pathname.startsWith('/api/assets/')) {
+      const authCheck = requireAuth(request, env);
+      if (authCheck) return authCheck;
+      const key = url.pathname.slice('/api/assets/'.length);
+      if (!key) return errorJsonResponse('Missing asset key', 400);
+      const object = await env.ASSETS.get(key);
+      if (!object) return new Response('Not Found', { status: 404 });
+      return new Response(object.body, {
+        headers: {
+          'Content-Type': object.httpMetadata?.contentType || 'image/png',
+          'Cache-Control': 'public, max-age=86400',
+        },
+      });
     }
 
     // Everything else requires auth

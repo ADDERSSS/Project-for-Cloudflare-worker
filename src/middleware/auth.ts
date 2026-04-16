@@ -7,6 +7,17 @@ export function parseCookies(header: string): Record<string, string> {
   return cookies;
 }
 
+const PUBLIC_PATHS = [
+  /^\/s\//,
+  /^\/login$/,
+  /^\/api\/login$/,
+  /^\/c\/[^/]+$/,
+];
+
+export function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((pattern) => pattern.test(pathname));
+}
+
 /**
  * Check if a request is authenticated.
  * Returns null if authenticated, or a redirect Response to /login if not.

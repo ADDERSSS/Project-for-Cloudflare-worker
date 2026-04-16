@@ -8,7 +8,8 @@
     {
       "binding": "DB",
       "database_name": "bookmarks-db",
-      "database_id": "local"
+      "database_id": "local",
+      "migrations_dir": "src/db/migrations"
     }
   ],
   "kv_namespaces": [
@@ -23,6 +24,9 @@
       "bucket_name": "bookmark-assets"
     }
   ],
+  "ai": {
+    "binding": "AI"
+  },
   "vars": {
     "BASE_URL": "http://localhost:8787"
   },

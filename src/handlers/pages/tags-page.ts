@@ -36,7 +36,7 @@ export const tagsPage: Handler = async () => {
   const content = `
     <div x-data="tagsManager()" x-init="init()">
       <div class="flex items-center justify-between mb-6 animate-slide-up">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tags</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white" style="view-transition-name: page-title">Tags</h1>
       </div>
 
       <!-- Create tag form -->

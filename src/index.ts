@@ -1,15 +1,17 @@
 import { Router } from './router';
-import { requireAuth, createAuthCookie } from './middleware/auth';
-import { jsonResponse, htmlResponse, redirectResponse, errorJsonResponse } from './utils/response';
+import { isPublicPath, requireAuth } from './middleware/auth';
+import { errorJsonResponse, htmlResponse } from './utils/response';
 import { notFoundPage, serverErrorPage } from './templates/error-pages';
 
 // Import API handlers
 import { handleBookmarks } from './handlers/api/bookmarks';
+import { handleCollections } from './handlers/api/collections';
 import { handleTags } from './handlers/api/tags';
 import { handleShortlinks } from './handlers/api/shortlinks';
 import { handleStats } from './handlers/api/stats';
 
 // Import page handlers
+import { collectionPage } from './handlers/pages/collection';
 import { loginPage, handleLogin } from './handlers/pages/login';
 import { dashboardPage } from './handlers/pages/dashboard';
 import { bookmarkFormPage } from './handlers/pages/bookmark-form';
@@ -29,6 +31,7 @@ const router = new Router();
 router.get('/s/:code', handleRedirect);
 router.get('/login', loginPage);
 router.post('/api/login', handleLogin);
+router.get('/c/:slug', collectionPage);
 
 // --- Pages (auth checked inside each handler) ---
 router.get('/', dashboardPage);
@@ -44,6 +47,15 @@ router.get('/api/bookmarks/:id', handleBookmarks);
 router.put('/api/bookmarks/:id', handleBookmarks);
 router.delete('/api/bookmarks/:id', handleBookmarks);
 router.post('/api/bookmarks/:id/archive', handleBookmarks);
+router.post('/api/bookmarks/:id/reanalyze', handleBookmarks);
+
+// --- API: Collections ---
+router.get('/api/collections', handleCollections);
+router.post('/api/collections', handleCollections);
+router.put('/api/collections/:id', handleCollections);
+router.delete('/api/collections/:id', handleCollections);
+router.post('/api/collections/:id/bookmarks', handleCollections);
+router.delete('/api/collections/:id/bookmarks/:bookmarkId', handleCollections);
 
 // --- API: Tags ---
 router.get('/api/tags', handleTags);
@@ -67,7 +79,7 @@ export default {
     const url = new URL(request.url);
 
     // Public routes — no auth
-    if (url.pathname.startsWith('/s/') || url.pathname === '/login' || url.pathname === '/api/login') {
+    if (isPublicPath(url.pathname)) {
       return router.handle(request, env, ctx);
     }
 

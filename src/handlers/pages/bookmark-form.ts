@@ -14,11 +14,12 @@ export const bookmarkFormPage: Handler = async (req, _env, _ctx, params) => {
           <a href="/" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
             <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </a>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="isEdit ? 'Edit Bookmark' : 'Add Bookmark'"></h1>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white" style="view-transition-name: page-title" x-text="isEdit ? 'Edit Bookmark' : 'Add Bookmark'"></h1>
         </div>
 
         <!-- Form Card -->
-        <div class="bg-white/80 dark:bg-white/[0.03] glass rounded-2xl shadow-xl shadow-indigo-500/5 border border-gray-200/50 dark:border-white/5 p-6">
+        <div class="bg-white/80 dark:bg-white/[0.03] glass rounded-2xl shadow-xl shadow-indigo-500/5 border border-gray-200/50 dark:border-white/5 p-6"
+             :style="isEdit ? 'view-transition-name: bookmark-' + editId : ''">
           <form @submit.prevent="save()">
             <!-- URL -->
             <div class="mb-5">

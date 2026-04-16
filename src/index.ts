@@ -1,6 +1,7 @@
 import { Router } from './router';
 import { requireAuth, createAuthCookie } from './middleware/auth';
 import { jsonResponse, htmlResponse, redirectResponse, errorJsonResponse } from './utils/response';
+import { notFoundPage, serverErrorPage } from './templates/error-pages';
 
 // Import API handlers
 import { handleBookmarks } from './handlers/api/bookmarks';
@@ -85,13 +86,18 @@ export default {
     if (authResponse) return authResponse;
 
     try {
-      return await router.handle(request, env, ctx);
+      const response = await router.handle(request, env, ctx);
+      // Replace plain-text 404 from router with styled page for non-API routes
+      if (response.status === 404 && !url.pathname.startsWith('/api/')) {
+        return htmlResponse(notFoundPage(), 404);
+      }
+      return response;
     } catch (err) {
       console.error('Unhandled error:', err);
       if (url.pathname.startsWith('/api/')) {
         return errorJsonResponse('Internal Server Error', 500);
       }
-      return htmlResponse('<h1>500 — Internal Server Error</h1>', 500);
+      return htmlResponse(serverErrorPage(), 500);
     }
   },
 
